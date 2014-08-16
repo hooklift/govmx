@@ -1,6 +1,10 @@
 package vmx
 
 import (
+	"fmt"
+	"path/filepath"
+	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -31,83 +35,183 @@ func equals(tb testing.TB, exp, act interface{}) {
 	}
 }
 
-func TestMarshal(t *testing.Test) {
+func TestMarshal(t *testing.T) {
 	type VM struct {
-		Hwversion    string `vmx:virtualHW.version`
-		HwProdCompat string `vmx:virtualHW.productCompatibility`
-		Memsize      string `vmx:memsize`
-		Numvcpus	 string `vmx:numvcpus`
-		MemHotAdd    bool   `vmx:mem.hotadd`
-		DisplayName  string `vmx:displayName`
-		GuestOS      string `vmx:guestOS`
-		Autoanswer   bool   `vmx:msg.autoAnswer`
+		Encoding     string `vmx:".encoding"`
+		Annotation   string `vmx:"annotation"`
+		Hwversion    uint8  `vmx:"virtualHW.version"`
+		HwProdCompat string `vmx:"virtualHW.productCompatibility"`
+		Memsize      uint   `vmx:"memsize"`
+		Numvcpus     uint   `vmx:"numvcpus"`
+		MemHotAdd    bool   `vmx:"mem.hotadd"`
+		DisplayName  string `vmx:"displayName"`
+		GuestOS      string `vmx:"guestOS"`
+		Autoanswer   bool   `vmx:"msg.autoAnswer"`
 	}
 
-	var vm VM
-	data, err := Marshal(&vm)
+	vm := new(VM)
+	vm.Encoding = "utf-8"
+	vm.Annotation = "Test VM"
+	vm.Hwversion = 10
+	vm.HwProdCompat = "hosted"
+	vm.Memsize = 1024
+	vm.Numvcpus = 2
+	vm.MemHotAdd = false
+	vm.DisplayName = "test"
+	vm.GuestOS = "other3xlinux-64"
+	vm.Autoanswer = true
+
+	data, err := Marshal(vm)
 	ok(t, err)
+	expected := `.encoding = "utf-8"
+annotation = "Test VM"
+virtualHW.version = "10"
+virtualHW.productCompatibility = "hosted"
+memsize = "1024"
+numvcpus = "2"
+mem.hotadd = "false"
+displayName = "test"
+guestOS = "other3xlinux-64"
+msg.autoAnswer = "true"
+`
+	equals(t, expected, string(data))
 }
 
-func TestMarshalEmbedded(t *testing.Test) {
+func TestMarshalEmbedded(t *testing.T) {
 	type Vhardware struct {
-		version string `vmx:version`
-		compat  string `vmx:productCompatibility`
+		Version string `vmx:"version"`
+		Compat  string `vmx:"productCompatibility"`
 	}
 
 	type VM struct {
-		Hwversion   Vhardware `vmx:virtualHW`
-		Memsize     string    `vmx:memsize`
-		MemHotAdd   bool      `vmx:mem.hotadd`
-		DisplayName string    `vmx:displayName`
-		GuestOS     string    `vmx:guestOS`
+		Encoding    string    `vmx:".encoding"`
+		Annotation  string    `vmx:"annotation"`
+		Vhardware   Vhardware `vmx:"virtualHW"`
+		Memsize     uint      `vmx:"memsize"`
+		Numvcpus    uint      `vmx:"numvcpus"`
+		MemHotAdd   bool      `vmx:"mem.hotadd"`
+		DisplayName string    `vmx:"displayName"`
+		GuestOS     string    `vmx:"guestOS"`
+		Autoanswer  bool      `vmx:"msg.autoAnswer"`
 	}
 
-	var vm VM
-	data, err := Marshal(&vm)
+	vm := new(VM)
+	vm.Encoding = "utf-8"
+	vm.Annotation = "Test VM"
+	vm.Vhardware = Vhardware{
+		Version: "10",
+		Compat:  "hosted",
+	}
+	vm.Memsize = 1024
+	vm.Numvcpus = 2
+	vm.MemHotAdd = false
+	vm.DisplayName = "test"
+	vm.GuestOS = "other3xlinux-64"
+	vm.Autoanswer = true
+
+	data, err := Marshal(vm)
 	ok(t, err)
+	expected := `.encoding = "utf-8"
+annotation = "Test VM"
+virtualHW.version = "10"
+virtualHW.productCompatibility = "hosted"
+memsize = "1024"
+numvcpus = "2"
+mem.hotadd = "false"
+displayName = "test"
+guestOS = "other3xlinux-64"
+msg.autoAnswer = "true"
+`
+	equals(t, expected, string(data))
 }
 
-func TestMarshalArray(t *testing.Test) {
+func TestMarshalArray(t *testing.T) {
 	type Vhardware struct {
-		version string `vmx:version`
-		compat  string `vmx:productCompatibility`
+		Version string `vmx:"version"`
+		Compat  string `vmx:"productCompatibility"`
 	}
 
 	type Ethernet struct {
-		Present              bool   `vmx:present`
-		ConnectionType       string `vmx:connectionType`
-		VirtualDev           string `vmx:virtualDev`
-		WakeOnPcktRcv        bool   `vmx:wakeOnPcktRcv`
-		AddressType          string `vmx:addressType`
-		LinkStatePropagation bool   `vmx:linkStatePropagation.enable`
+		StartConnected       bool   `vmx:"startConnected"`
+		Present              bool   `vmx:"present"`
+		ConnectionType       string `vmx:"connectionType"`
+		VirtualDev           string `vmx:"virtualDev"`
+		WakeOnPcktRcv        bool   `vmx:"wakeOnPcktRcv"`
+		AddressType          string `vmx:"addressType"`
+		LinkStatePropagation bool   `vmx:"linkStatePropagation.enable,omitempty"`
 	}
 
 	type VM struct {
-		Hwversion   Vhardware  `vmx:virtualHW`
-		Memsize     string     `vmx:memsize`
-		MemHotAdd   bool       `vmx:mem.hotadd`
-		DisplayName string     `vmx:displayName`
-		GuestOS     string     `vmx:guestOS`
-		Autoanswer  bool       `vmx:msg.autoAnswer`
-		Ethernet    []Ethernet `vmx:ethernet`
+		Encoding    string     `vmx:".encoding"`
+		Annotation  string     `vmx:"annotation"`
+		Vhardware   Vhardware  `vmx:"virtualHW"`
+		Memsize     uint       `vmx:"memsize"`
+		Numvcpus    uint       `vmx:"numvcpus"`
+		MemHotAdd   bool       `vmx:"mem.hotadd"`
+		DisplayName string     `vmx:"displayName"`
+		GuestOS     string     `vmx:"guestOS"`
+		Autoanswer  bool       `vmx:"msg.autoAnswer"`
+		Ethernet    []Ethernet `vmx:"ethernet"`
 	}
 
-	var vm VM
+	vm := new(VM)
+	vm.Encoding = "utf-8"
+	vm.Annotation = "Test VM"
+	vm.Vhardware = Vhardware{
+		Version: "9",
+		Compat:  "hosted",
+	}
+	vm.Ethernet = []Ethernet{
+		{
+			StartConnected:       true,
+			Present:              true,
+			ConnectionType:       "bridged",
+			VirtualDev:           "e1000",
+			WakeOnPcktRcv:        false,
+			AddressType:          "generated",
+			LinkStatePropagation: true,
+		},
+		{
+			StartConnected: true,
+			Present:        true,
+			ConnectionType: "nat",
+			VirtualDev:     "e1000",
+			WakeOnPcktRcv:  false,
+			AddressType:    "generated",
+		},
+	}
+	vm.Memsize = 1024
+	vm.Numvcpus = 2
+	vm.MemHotAdd = false
+	vm.DisplayName = "test"
+	vm.GuestOS = "other3xlinux-64"
+	vm.Autoanswer = true
+
 	data, err := Marshal(&vm)
 	ok(t, err)
-}
-
-func TestMarshalUSB(t *testing.T) {
-
-}
-
-func TestMarshalIDEDevices(t *testing.T) {
-	// Maximum two IDE ports: primary and secondary
-	// Maximum two devices per port
-	// Only same device type per port
-	// ide<port>:<id>.present
-}
-
-func TestMarshalParallelPorts(t *testing.T) {
-	// max 3
+	expected := `.encoding = "utf-8"
+annotation = "Test VM"
+virtualHW.version = "9"
+virtualHW.productCompatibility = "hosted"
+memsize = "1024"
+numvcpus = "2"
+mem.hotadd = "false"
+displayName = "test"
+guestOS = "other3xlinux-64"
+msg.autoAnswer = "true"
+ethernet0.startConnected = "true"
+ethernet0.present = "true"
+ethernet0.connectionType = "bridged"
+ethernet0.virtualDev = "e1000"
+ethernet0.wakeOnPcktRcv = "false"
+ethernet0.addressType = "generated"
+ethernet0.linkStatePropagation.enable = "true"
+ethernet1.startConnected = "true"
+ethernet1.present = "true"
+ethernet1.connectionType = "nat"
+ethernet1.virtualDev = "e1000"
+ethernet1.wakeOnPcktRcv = "false"
+ethernet1.addressType = "generated"
+`
+	equals(t, expected, string(data))
 }
