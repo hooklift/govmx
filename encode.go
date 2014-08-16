@@ -114,13 +114,17 @@ func parseTag(tag string) (string, bool, error) {
 
 	// Takes out first colon found
 	parts := strings.Split(tag, ":")
-	if len(parts) < 1 {
+	if len(parts) < 2 || parts[1] == "" {
 		return "", omitempty, fmt.Errorf("Invalid tag: %s", tag)
 	}
 
+	if parts[1] == `""` {
+		return "", omitempty, fmt.Errorf("Tag name is missing: %s", tag)
+	}
+
 	// Takes out double quotes
-	parts2 := strings.Split(parts[1], "\"")
-	if len(parts2) < 1 {
+	parts2 := strings.Split(parts[1], `"`)
+	if len(parts2) < 2 {
 		return "", omitempty, fmt.Errorf("Tag name has to be enclosed in double quotes: %s", tag)
 	}
 
