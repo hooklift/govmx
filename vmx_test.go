@@ -187,7 +187,7 @@ func TestMarshalArray(t *testing.T) {
 	vm.GuestOS = "other3xlinux-64"
 	vm.Autoanswer = true
 
-	data, err := Marshal(&vm)
+	data, err := Marshal(vm)
 	ok(t, err)
 	expected := `.encoding = "utf-8"
 annotation = "Test VM"
