@@ -64,9 +64,6 @@ func (e *Encoder) encode(val reflect.Value) error {
 		case reflect.Array, reflect.Slice:
 			err = e.encodeArray(valueField, key)
 		default:
-			if !valueField.CanSet() {
-				continue
-			}
 			if e.parentKey != "" {
 				key = e.parentKey + "." + key
 			}
