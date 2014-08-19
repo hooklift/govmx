@@ -20,6 +20,7 @@ type Encoder struct {
 	parentKey string
 }
 
+// Creates a new encoder
 func NewEncoder(buffer *bytes.Buffer) *Encoder {
 	return &Encoder{
 		buffer:       buffer,
@@ -27,11 +28,13 @@ func NewEncoder(buffer *bytes.Buffer) *Encoder {
 	}
 }
 
+// Encodes Go structure into a VMX structure, recursively.
 func (e *Encoder) Encode(v interface{}) error {
 	val := reflect.ValueOf(v)
 	return e.encode(val)
 }
 
+// Does the actual encoding work
 func (e *Encoder) encode(val reflect.Value) error {
 	// Drill into interfaces and pointers.
 	// This can turn into an infinite loop given a cyclic chain,
@@ -78,6 +81,8 @@ func (e *Encoder) encode(val reflect.Value) error {
 	return nil
 }
 
+// When an array or slice type is found in the Go structure, this function encodes it
+// recursively.
 func (e *Encoder) encodeArray(valueField reflect.Value, key string) error {
 	for i := 0; i < valueField.Len(); i++ {
 		e.parentKey = key + strconv.Itoa(i)
@@ -90,6 +95,7 @@ func (e *Encoder) encodeArray(valueField reflect.Value, key string) error {
 	return nil
 }
 
+// Encodes a Go struct type into a VMX string, recursively.
 func (e *Encoder) encodeStruct(valueField reflect.Value, key string) error {
 	e.currentRecursion++
 	if e.currentRecursion > e.maxRecursion {
@@ -106,6 +112,7 @@ func (e *Encoder) encodeStruct(valueField reflect.Value, key string) error {
 	return nil
 }
 
+// Parses struct tag
 func parseTag(tag string) (string, bool, error) {
 	omitempty := false
 
@@ -134,6 +141,7 @@ func parseTag(tag string) (string, bool, error) {
 	return values[0], omitempty, nil
 }
 
+// Checks whether or not the reflected value is empty
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
