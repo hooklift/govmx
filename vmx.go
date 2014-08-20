@@ -18,5 +18,5 @@ func Marshal(v interface{}) ([]byte, error) {
 
 // Takes VMX data and binds it to the Go value pointed by v
 func Unmarshal(data []byte, v interface{}) error {
-	return NewDecoder(bytes.NewReader(data)).Decode(v)
+	return NewDecoder(bytes.NewReader(data), false).Decode(v)
 }
