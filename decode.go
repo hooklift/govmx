@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Decoder struct {
@@ -40,6 +42,7 @@ func (d *Decoder) Decode(v interface{}) error {
 	}
 
 	// Starts scanning the text file
+	var wg sync.WaitGroup
 	for d.scanner.Scan() {
 		line := d.scanner.Text()
 
@@ -58,11 +61,16 @@ func (d *Decoder) Decode(v interface{}) error {
 		targetValue = strings.TrimPrefix(targetValue, `"`)
 		targetValue = strings.TrimSuffix(targetValue, `"`)
 
-		err := d.decode(val, "", targetKey, targetValue)
-		if err != nil {
-			return err
-		}
+		wg.Add(1)
+		go func(val reflect.Value, key, targetKey, targetValue string) {
+			defer wg.Done()
+			err := d.decode(val, key, targetKey, targetValue)
+			if err != nil {
+				log.Printf("Error decoding: %s\n", err)
+			}
+		}(val, "", targetKey, targetValue)
 	}
+	wg.Wait()
 
 	if err := d.scanner.Err(); err != nil {
 		return fmt.Errorf("Scanner error: %v", err)
@@ -73,6 +81,8 @@ func (d *Decoder) Decode(v interface{}) error {
 
 func (d *Decoder) decode(val reflect.Value, key, targetKey, targetValue string) error {
 	var err error
+	targetKey = strings.ToLower(targetKey)
+
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
@@ -92,9 +102,11 @@ func (d *Decoder) decode(val reflect.Value, key, targetKey, targetValue string) 
 			valKey = key + "." + valKey
 		}
 
-		if valKey == "-" || !strings.EqualFold(valKey, targetKey) || !valueField.CanSet() {
-			// fmt.Printf("%s != %s? ", valKey, targetKey)
-			// fmt.Printf("CanSet? %t\n", valueField.CanSet())
+		valKey = strings.ToLower(valKey)
+
+		//fmt.Printf("->%s<- has prefix ->%s<-? %t -> ", targetKey, valKey, strings.HasPrefix(targetKey, valKey))
+		//fmt.Printf("can set value? %t\n", valueField.CanSet())
+		if valKey == "-" || !strings.HasPrefix(targetKey, valKey) || !valueField.CanSet() {
 			continue
 		}
 
@@ -133,7 +145,7 @@ func (d *Decoder) decode(val reflect.Value, key, targetKey, targetValue string) 
 func (d *Decoder) decodeArray(valueField reflect.Value, key, targetKey, targetValue string) error {
 	for i := 0; i < valueField.Len(); i++ {
 		indexedKey := key + strconv.Itoa(i)
-
+		fmt.Printf("indexedKey -> %s\n", indexedKey)
 		err := d.decode(valueField.Index(i), indexedKey, targetKey, targetValue)
 		if err != nil {
 			return err
