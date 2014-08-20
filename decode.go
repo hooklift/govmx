@@ -56,19 +56,19 @@ func (d *Decoder) Decode(v interface{}) error {
 			return fmt.Errorf("Invalid line: %s ", line)
 		}
 
-		targetKey := strings.TrimSpace(parts[0])
-		targetValue := strings.TrimSpace(parts[1])
-		targetValue = strings.TrimPrefix(targetValue, `"`)
-		targetValue = strings.TrimSuffix(targetValue, `"`)
+		sourceKey := strings.TrimSpace(parts[0])
+		sourceValue := strings.TrimSpace(parts[1])
+		sourceValue = strings.TrimPrefix(sourceValue, `"`)
+		sourceValue = strings.TrimSuffix(sourceValue, `"`)
 
 		wg.Add(1)
-		go func(val reflect.Value, key, targetKey, targetValue string) {
+		go func(val reflect.Value, key, sourceKey, sourceValue string) {
 			defer wg.Done()
-			err := d.decode(val, key, targetKey, targetValue)
+			err := d.decode(val, key, sourceKey, sourceValue)
 			if err != nil {
 				log.Printf("Error decoding: %s\n", err)
 			}
-		}(val, "", targetKey, targetValue)
+		}(val, "", sourceKey, sourceValue)
 	}
 	wg.Wait()
 
@@ -79,9 +79,9 @@ func (d *Decoder) Decode(v interface{}) error {
 	return nil
 }
 
-func (d *Decoder) decode(val reflect.Value, key, targetKey, targetValue string) error {
+func (d *Decoder) decode(val reflect.Value, key, sourceKey, sourceValue string) error {
 	var err error
-	targetKey = strings.ToLower(targetKey)
+	sourceKey = strings.ToLower(sourceKey)
 
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
@@ -93,46 +93,46 @@ func (d *Decoder) decode(val reflect.Value, key, targetKey, targetValue string) 
 			continue
 		}
 
-		valKey, _, err := parseTag(tag)
+		destKey, _, err := parseTag(tag)
 		if err != nil {
 			continue
 		}
 
 		if key != "" {
-			valKey = key + "." + valKey
+			destKey = key + "." + destKey
 		}
 
-		valKey = strings.ToLower(valKey)
+		destKey = strings.ToLower(destKey)
 
-		//fmt.Printf("->%s<- has prefix ->%s<-? %t -> ", targetKey, valKey, strings.HasPrefix(targetKey, valKey))
-		//fmt.Printf("can set value? %t\n", valueField.CanSet())
-		if valKey == "-" || !strings.HasPrefix(targetKey, valKey) || !valueField.CanSet() {
+		//fmt.Printf("\n->%s<- has prefix ->%s<-? %t ->\n", sourceKey, destKey, strings.HasPrefix(sourceKey, destKey))
+
+		if destKey == "-" || !strings.HasPrefix(sourceKey, destKey) || !valueField.CanSet() {
 			continue
 		}
 
 		switch valueField.Kind() {
 		case reflect.Struct:
-			err = d.decode(valueField, valKey, targetKey, targetValue)
+			err = d.decode(valueField, destKey, sourceKey, sourceValue)
 
 		case reflect.Array, reflect.Slice:
-			err = d.decodeArray(valueField, valKey, targetKey, targetValue)
+			err = d.decodeArray(valueField, destKey, sourceKey, sourceValue)
 
 		case reflect.String:
-			valueField.SetString(targetValue)
+			valueField.SetString(sourceValue)
 
 		case reflect.Bool:
 			var boolValue bool
-			boolValue, err = strconv.ParseBool(targetValue)
+			boolValue, err = strconv.ParseBool(sourceValue)
 			valueField.SetBool(boolValue)
 
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			var intValue int64
-			intValue, err = strconv.ParseInt(targetValue, 10, valueField.Type().Bits())
+			intValue, err = strconv.ParseInt(sourceValue, 10, valueField.Type().Bits())
 			valueField.SetInt(intValue)
 
 		case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint8:
 			var uintValue uint64
-			uintValue, err = strconv.ParseUint(targetValue, 10, valueField.Type().Bits())
+			uintValue, err = strconv.ParseUint(sourceValue, 10, valueField.Type().Bits())
 			valueField.SetUint(uintValue)
 
 		default:
@@ -142,14 +142,35 @@ func (d *Decoder) decode(val reflect.Value, key, targetKey, targetValue string) 
 	return err
 }
 
-func (d *Decoder) decodeArray(valueField reflect.Value, key, targetKey, targetValue string) error {
-	for i := 0; i < valueField.Len(); i++ {
-		indexedKey := key + strconv.Itoa(i)
-		fmt.Printf("indexedKey -> %s\n", indexedKey)
-		err := d.decode(valueField.Index(i), indexedKey, targetKey, targetValue)
-		if err != nil {
-			return err
+func (d *Decoder) decodeArray(valueField reflect.Value, destKey, sourceKey, sourceValue string) error {
+	fmt.Printf("Dest key => %s, ", destKey)
+	fmt.Printf("Source key => %s, ", sourceKey)
+	fmt.Printf("Source value => %s\n", sourceValue)
+
+	// TODO(c4milo): I need to figure out how to grow the slice using the
+	// reflection API
+
+	length := valueField.Len()
+	capacity := valueField.Cap()
+	if length >= capacity {
+		capacity := 2 * length
+		if capacity < 4 {
+			capacity = 4
 		}
+		newSlice := reflect.MakeSlice(valueField.Type(), length, capacity)
+		reflect.Copy(newSlice, valueField)
+		valueField.Set(newSlice)
 	}
-	return nil
+	valueField.SetLen(length + 1)
+	destKey += strconv.Itoa(length)
+
+	err := d.decode(valueField.Index(length), destKey, sourceKey, sourceValue)
+	if err != nil {
+		valueField.SetLen(length)
+	}
+	return err
+}
+
+func searchValue(valueField reflect.Value, key string) (uint, bool) {
+	return 0, false
 }
