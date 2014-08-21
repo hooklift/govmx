@@ -1,9 +1,6 @@
 package vmx
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 var data = `.encoding = "UTF-8"
 annotation = "Terraform VMWARE VIX test"
@@ -112,7 +109,7 @@ ethernet3.generatedAddressOffset = "30"
 
 func TestUnmarshal(t *testing.T) {
 	type Vhardware struct {
-		Version string `vmx:"version"`
+		Version int    `vmx:"version"`
 		Compat  string `vmx:"productCompatibility"`
 	}
 
@@ -142,5 +139,7 @@ func TestUnmarshal(t *testing.T) {
 	vm := new(VM)
 	err := Unmarshal([]byte(data), vm)
 	ok(t, err)
-	fmt.Printf("%+v\n", vm.Ethernet)
+	assert(t, vm.Vhardware.Version == 9, "vhwversion should be 9")
+	assert(t, len(vm.Ethernet) == 3, "there should be 3 ethernet devices")
+	assert(t, vm.Numvcpus == 1, "there should be 1 vcpu")
 }
