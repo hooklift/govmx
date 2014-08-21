@@ -142,5 +142,5 @@ func TestUnmarshal(t *testing.T) {
 	vm := new(VM)
 	err := Unmarshal([]byte(data), vm)
 	ok(t, err)
-	fmt.Printf("%+v\n", vm)
+	fmt.Printf("%+v\n", vm.Ethernet)
 }

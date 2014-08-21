@@ -135,10 +135,10 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 		destKey = strings.ToLower(destKey)
 
 		value := d.vmx[destKey]
-		//fmt.Printf("%s:%s\n", destKey, value)
+		fmt.Printf("%s => %s\n", destKey, value)
 
 		if destKey == "-" || !valueField.CanSet() {
-			log.Printf("key => %s\n", destKey)
+			log.Printf("Cant set type %s tagged as %s\n", valueField.Type().String(), destKey)
 			continue
 		}
 
@@ -156,6 +156,7 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 
 		switch kind {
 		case reflect.Struct:
+			log.Printf("Decoding struct %s...", destKey)
 			err = d.decode(valueField, destKey)
 
 		case reflect.Array, reflect.Slice:
@@ -195,43 +196,40 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 }
 
 func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
-	fmt.Printf("Key to look for => %s\n", key)
+	fmt.Printf("Decode slice tagged as: %s\n", key)
 	errors := make([]string, 0)
 	seenIndexes := make(map[string]bool)
+
+	if valueField.IsNil() {
+		valueField.Set(reflect.MakeSlice(valueField.Type(), 1, 1))
+	}
 
 	for k, _ := range d.vmx {
 		if !strings.HasPrefix(k, key) {
 			continue
 		}
 
-		index := getVMXPropIndex(k)
-		if seenIndexes[index] {
+		index := getVMXPropIndex(k, key)
+		if index == "" || seenIndexes[index] {
+			//fmt.Printf("already seen index %s, from %s\n", index, key)
 			continue
 		}
 
 		seenIndexes[index] = true
 
-		length := valueField.Len()
-		capacity := valueField.Cap()
+		newKey := key + index
 
-		// Growing slice if it is at its full capacity
-		if length == capacity {
-			capacity := 2 * length
-			if capacity < 4 {
-				capacity = 4
-			}
-			newSlice := reflect.MakeSlice(valueField.Type(), length, capacity)
-			reflect.Copy(newSlice, valueField)
-			valueField.Set(newSlice)
-		}
-		valueField.SetLen(length + 1)
+		fmt.Printf("key %s\n", newKey)
 
-		key += index
-		err := d.decode(valueField.Index(length), key)
+		newVal := reflect.New(valueField.Index(0).Type()).Elem()
+
+		err := d.decode(newVal, newKey)
 		if err != nil {
 			errors = appendErrors(errors, err)
-			valueField.SetLen(length)
+			continue
 		}
+
+		valueField = reflect.Append(valueField, newVal)
 	}
 
 	if len(errors) > 0 {
@@ -241,7 +239,7 @@ func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
 	return nil
 }
 
-func getVMXPropIndex(key string) string {
+func getVMXPropIndex(vmxKey, goKey string) string {
 	// range for scsci devices: scsi0:0 to scsi3:15
 	//
 	// ethernet1.pciSlotNumber
@@ -251,6 +249,18 @@ func getVMXPropIndex(key string) string {
 	// usb:1.present = "TRUE"
 	// usb:1.deviceType = "hub"
 
-	//switch strings.HasSuffix(key, "")
-	return "1"
+	attr := strings.TrimPrefix(vmxKey, goKey)
+	//fmt.Printf("->%s<-\n", vmxKey)
+	parts := strings.Split(attr, ".")
+	//fmt.Printf("->%s<-\n", parts)
+	index := "0"
+	if len(parts) > 0 {
+		index = parts[0]
+	}
+
+	// if index == "" {
+	// 	fmt.Printf("index is empty and came from %s\n", vmxKey)
+	// }
+
+	return index
 }
