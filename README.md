@@ -83,4 +83,4 @@ err := Unmarshal([]byte(data), vm)
 
 
 # Resources
-* **VMware Configuration maximums:** http://www.vmware.com/pdf/vsphere5/r50/vsphere-50-configuration-maximums.pdf
+* **The Laws of Reflection:** http://blog.golang.org/laws-of-reflection
