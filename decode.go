@@ -161,6 +161,7 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 
 		case reflect.Array, reflect.Slice:
 			err = d.decodeSlice(valueField, destKey)
+		case reflect.Map:
 
 		case reflect.String:
 			valueField.SetString(value)
