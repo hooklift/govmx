@@ -33,7 +33,7 @@ vm.Autoanswer = true
 data, err := Marshal(vm)
 ```
 
-`data` should: 
+`data` should be: 
 
 ```
 .encoding = "utf-8"
