@@ -1,5 +1,6 @@
 # GoVMX
 [![GoDoc](https://godoc.org/github.com/cloudescape/govmx?status.svg)](https://godoc.org/github.com/cloudescape/govmx)
+[![Build Status](https://travis-ci.org/cloudescape/govmx.svg?branch=master)](https://travis-ci.org/cloudesc        ape/govmx)
 
 Data encoding and decoding library for VMware VMX files.
 
