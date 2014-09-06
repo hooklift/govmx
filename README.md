@@ -83,8 +83,6 @@ vm := new(VM)
 err := Unmarshal([]byte(data), vm)
 ```
 
-# Resources
-* **The Laws of Reflection:** http://blog.golang.org/laws-of-reflection
 
 # License
 Copyright 2014 Cloudescape
