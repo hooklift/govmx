@@ -3,7 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 package vmx
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 var data = `.encoding = "UTF-8"
 annotation = "Terraform VMWARE VIX test"
@@ -45,6 +48,9 @@ hgfs.maprootshare = "TRUE"
 ide1:0.devicetype = "cdrom-image"
 ide1:0.filename = "/Users/camilo/Dropbox/Development/cloudescape/dobby-boxes/coreos/packer_cache/e159f7e70f4ccc346ee76b2a32cbdf059549a7ca82e91edbeed5d747bcdd50f9.iso"
 ide1:0.present = "TRUE"
+ide1:1.devicetype = "cdrom-image"
+ide1:1.filename = "coreos.iso"
+ide1:1.present = "TRUE"
 isolation.tools.hgfs.disable = "FALSE"
 memsize = "1024"
 monitor.phys_bits_used = "40"
@@ -126,17 +132,42 @@ func TestUnmarshal(t *testing.T) {
 		LinkStatePropagation bool   `vmx:"linkStatePropagation.enable,omitempty"`
 	}
 
+	type Device struct {
+		VirtualDev string `vmx:"virtualdev"`
+		Type       string `vmx:"devicetype"`
+		Filename   string `vmxl:"filename"`
+		Present    bool   `vmx:"present"`
+	}
+
+	type SATAController struct {
+		Present bool `vmx:"present"`
+		Devices []Device
+	}
+
+	type SCSIController struct {
+		Present bool `vmx:"present"`
+		Devices []Device
+	}
+
+	type IDEController struct {
+		Present bool `vmx:"present"`
+		Devices []Device
+	}
+
 	type VM struct {
-		Encoding    string     `vmx:".encoding"`
-		Annotation  string     `vmx:"annotation"`
-		Vhardware   Vhardware  `vmx:"virtualhw"`
-		Memsize     uint       `vmx:"memsize"`
-		Numvcpus    uint       `vmx:"numvcpus"`
-		MemHotAdd   bool       `vmx:"mem.hotadd"`
-		DisplayName string     `vmx:"displayName"`
-		GuestOS     string     `vmx:"guestOS"`
-		Autoanswer  bool       `vmx:"msg.autoAnswer"`
-		Ethernet    []Ethernet `vmx:"ethernet"`
+		Encoding    string           `vmx:".encoding"`
+		Annotation  string           `vmx:"annotation"`
+		Vhardware   Vhardware        `vmx:"virtualhw"`
+		Memsize     uint             `vmx:"memsize"`
+		Numvcpus    uint             `vmx:"numvcpus"`
+		MemHotAdd   bool             `vmx:"mem.hotadd"`
+		DisplayName string           `vmx:"displayName"`
+		GuestOS     string           `vmx:"guestOS"`
+		Autoanswer  bool             `vmx:"msg.autoAnswer"`
+		Ethernet    []Ethernet       `vmx:"ethernet"`
+		IDE         []IDEController  `vmx:"ide"`
+		SCSI        []SCSIController `vmx:"scsi"`
+		SATA        []SATAController `vmx:"sata"`
 	}
 
 	vm := new(VM)
@@ -145,4 +176,9 @@ func TestUnmarshal(t *testing.T) {
 	assert(t, vm.Vhardware.Version == 9, "vhwversion should be 9")
 	assert(t, len(vm.Ethernet) == 3, "there should be 3 ethernet devices")
 	assert(t, vm.Numvcpus == 1, "there should be 1 vcpu")
+	fmt.Printf("%+v\n", vm.IDE)
+	assert(t, len(vm.IDE) == 1, fmt.Sprintf("there should be 1 IDE controller, found %d", len(vm.IDE)))
+	assert(t, len(vm.SCSI) == 1, fmt.Sprintf("there should be 1 SCSI controller, found %d", len(vm.SCSI)))
+	assert(t, len(vm.SATA) == 0, fmt.Sprintf("there should be 0 SATA controller, found %d", len(vm.SATA)))
+
 }

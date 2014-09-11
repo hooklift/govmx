@@ -109,9 +109,10 @@ func (d *Decoder) Decode(v interface{}) error {
 }
 
 // Lets decode only what the reflect value is asking for as opposed to starting
-// by iterating the text file. This is strategy makes it exponentially
-// easier to bind to slices or arrays. Trust me, I tried first the other
-// strategy and got stuck on that. I'm happy to discuss more if you ask me
+// by iterating the text file. This strategy makes it exponentially
+// easier to bind to slices or arrays. For the future myself looking at this code,
+// trust me, I tried first the other strategy and got stuck on that. For other
+// contributors, I'm happy to discuss more if you ask me.
 // -- c4milo
 func (d *Decoder) decode(val reflect.Value, key string) error {
 	errors := make([]string, 0)
@@ -138,7 +139,7 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 		destKey = strings.ToLower(destKey)
 
 		value := d.vmx[destKey]
-		//fmt.Printf("%s => %s\n", destKey, value)
+		fmt.Printf("%s => %s\n", destKey, value)
 
 		if destKey == "-" || !valueField.CanSet() {
 			log.Printf("Cant set type %s tagged as %s\n", valueField.Type().String(), destKey)
@@ -200,7 +201,8 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 }
 
 func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
-	//fmt.Printf("Decode slice tagged as: %s\n", key)
+	fmt.Printf("Decode slice tagged as: %s\n", key)
+
 	errors := make([]string, 0)
 	seenIndexes := make(map[string]bool)
 
@@ -214,6 +216,9 @@ func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
 			continue
 		}
 
+		// The reason we have to keep track of seen indexes is because entries
+		// with the same prefix are actually objects, they are decoded into Go
+		// structs, meaning that they only need one pass to be decoded.
 		seenIndexes[index] = true
 
 		length := valueField.Len()
@@ -249,19 +254,18 @@ func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
 	return nil
 }
 
-func getVMXPropIndex(vmxKey, goKey string) string {
-	// range for scsci devices: scsi0:0 to scsi3:15
-	//
-	// ethernet1.pciSlotNumber
-	// scsi0:0.filename
-	// scsi1:0.filename
-	// scsi1:1.filename
-	// usb:1.present = "TRUE"
-	// usb:1.deviceType = "hub"
+// In a VMX entry, an index is the prefix, before the first dot, minus the
+// attribute involved as declared in the given Go tag by the user.
+//
+// Examples:
+//   - In ethernet1.addressType the index is 1.
+//   - In scsi0:0.filename the index is 0:0
+//   - In usb:1.deviceType the index is :1
+func getVMXPropIndex(vmxKey, goTag string) string {
+	// trimming the attribute's name returns 1.present in the case of ethernet1.present,
+	// 0:0.filename for scsi0:0.filename, or :1.present for usb:1.present
+	attr := strings.TrimPrefix(vmxKey, goTag)
 
-	// trimming the prefix returns 1.present in the case of ethernet1.present,
-	// for instance.
-	attr := strings.TrimPrefix(vmxKey, goKey)
 	parts := strings.Split(attr, ".")
 	index := ""
 	if len(parts) > 0 {

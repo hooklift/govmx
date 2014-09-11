@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
 type Encoder struct {
@@ -113,35 +112,6 @@ func (e *Encoder) encodeStruct(valueField reflect.Value, key string) error {
 	e.parentKey = ""
 	e.currentRecursion--
 	return nil
-}
-
-// Parses struct tag
-func parseTag(tag string) (string, bool, error) {
-	omitempty := false
-
-	// Takes out first colon found
-	parts := strings.Split(tag, ":")
-	if len(parts) < 2 || parts[1] == "" {
-		return "", omitempty, fmt.Errorf("Invalid tag: %s", tag)
-	}
-
-	if parts[1] == `""` {
-		return "", omitempty, fmt.Errorf("Tag name is missing: %s", tag)
-	}
-
-	// Takes out double quotes
-	parts2 := strings.Split(parts[1], `"`)
-	if len(parts2) < 2 {
-		return "", omitempty, fmt.Errorf("Tag name has to be enclosed in double quotes: %s", tag)
-	}
-
-	values := strings.Split(parts2[1], ",")
-	if len(values) > 1 && values[1] == "omitempty" {
-		omitempty = true
-
-	}
-
-	return values[0], omitempty, nil
 }
 
 // Checks whether or not the reflected value is empty

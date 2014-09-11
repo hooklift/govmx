@@ -3,7 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 package vmx
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
 
 // Marshal traverses the value v recursively.
 // If an encountered value implements the Marshaler interface
@@ -22,4 +26,33 @@ func Marshal(v interface{}) ([]byte, error) {
 // Takes VMX data and binds it to the Go value pointed by v
 func Unmarshal(data []byte, v interface{}) error {
 	return NewDecoder(bytes.NewReader(data), false).Decode(v)
+}
+
+// Parses struct tag
+func parseTag(tag string) (string, bool, error) {
+	omitempty := false
+
+	// Takes out first colon found
+	parts := strings.Split(tag, ":")
+	if len(parts) < 2 || parts[1] == "" {
+		return "", omitempty, fmt.Errorf("Invalid tag: %s", tag)
+	}
+
+	if parts[1] == `""` {
+		return "", omitempty, fmt.Errorf("Tag name is missing: %s", tag)
+	}
+
+	// Takes out double quotes
+	parts2 := strings.Split(parts[1], `"`)
+	if len(parts2) < 2 {
+		return "", omitempty, fmt.Errorf("Tag name has to be enclosed in double quotes: %s", tag)
+	}
+
+	values := strings.Split(parts2[1], ",")
+	if len(values) > 1 && values[1] == "omitempty" {
+		omitempty = true
+
+	}
+
+	return values[0], omitempty, nil
 }
