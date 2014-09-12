@@ -91,6 +91,9 @@ scsi0.virtualdev = "lsilogic"
 scsi0:0.filename = "disk-cl1.vmdk"
 scsi0:0.present = "TRUE"
 scsi0:0.redo = ""
+scsi0:1.present = "TRUE"
+scsi0:1.autodetect = "TRUE"
+scsi0:1.deviceType = "cdrom-raw"
 softPowerOff = "FALSE"
 sound.startconnected = "FALSE"
 tools.synctime = "TRUE"
@@ -132,53 +135,60 @@ func TestUnmarshal(t *testing.T) {
 		LinkStatePropagation bool   `vmx:"linkStatePropagation.enable,omitempty"`
 	}
 
-	type Device struct {
-		VirtualDev string `vmx:"virtualdev"`
-		Type       string `vmx:"devicetype"`
-		Filename   string `vmxl:"filename"`
+	type SATADevice struct {
+		Present  bool   `vmx:"present,omitempty"`
+		Type     string `vmx:"devicetype,omitempty"`
+		Filename string `vmxl:"filename,omitempty"`
+	}
+
+	type SCSIDevice struct {
 		Present    bool   `vmx:"present"`
+		PCISlot    uint   `vmx:"pcislotnumber,omitempty"`
+		VirtualDev string `vmx:"virtualdev,omitempty"`
+		Type       string `vmx:"devicetype"`
+		Filename   string `vmxl:"filename,omitempty"`
 	}
 
-	type SATAController struct {
-		Present bool `vmx:"present"`
-		Devices []Device
+	type IDEDevice struct {
+		Present  bool   `vmx:"present,omitempty"`
+		Type     string `vmx:"devicetype,omitempty"`
+		Filename string `vmxl:"filename,omitempty"`
 	}
 
-	type SCSIController struct {
-		Present bool `vmx:"present"`
-		Devices []Device
-	}
-
-	type IDEController struct {
-		Present bool `vmx:"present"`
-		Devices []Device
+	type PowerType struct {
+		PowerOff string `vmx:"poweroff,omitempty"`
+		PowerOn  string `vmx:"poweron,omitempty"`
+		Reset    string `vmx:"reset,omitempty"`
+		Suspend  string `vmx:"suspend,omitempty"`
 	}
 
 	type VM struct {
-		Encoding    string           `vmx:".encoding"`
-		Annotation  string           `vmx:"annotation"`
-		Vhardware   Vhardware        `vmx:"virtualhw"`
-		Memsize     uint             `vmx:"memsize"`
-		Numvcpus    uint             `vmx:"numvcpus"`
-		MemHotAdd   bool             `vmx:"mem.hotadd"`
-		DisplayName string           `vmx:"displayName"`
-		GuestOS     string           `vmx:"guestOS"`
-		Autoanswer  bool             `vmx:"msg.autoAnswer"`
-		Ethernet    []Ethernet       `vmx:"ethernet"`
-		IDE         []IDEController  `vmx:"ide"`
-		SCSI        []SCSIController `vmx:"scsi"`
-		SATA        []SATAController `vmx:"sata"`
+		Encoding    string       `vmx:".encoding"`
+		PowerType   PowerType    `vmx:"powertype"`
+		Annotation  string       `vmx:"annotation"`
+		Vhardware   Vhardware    `vmx:"virtualhw"`
+		Memsize     uint         `vmx:"memsize"`
+		Numvcpus    uint         `vmx:"numvcpus"`
+		MemHotAdd   bool         `vmx:"mem.hotadd"`
+		DisplayName string       `vmx:"displayName"`
+		GuestOS     string       `vmx:"guestOS"`
+		Autoanswer  bool         `vmx:"msg.autoAnswer"`
+		Ethernet    []Ethernet   `vmx:"ethernet"`
+		IDEDevices  []IDEDevice  `vmx:"ide"`
+		SCSIDevices []SCSIDevice `vmx:"scsi"`
+		SATADevices []SATADevice `vmx:"sata"`
 	}
 
 	vm := new(VM)
 	err := Unmarshal([]byte(data), vm)
 	ok(t, err)
+	//fmt.Printf("%+v\n", vm.PowerType)
 	assert(t, vm.Vhardware.Version == 9, "vhwversion should be 9")
 	assert(t, len(vm.Ethernet) == 3, "there should be 3 ethernet devices")
 	assert(t, vm.Numvcpus == 1, "there should be 1 vcpu")
-	fmt.Printf("%+v\n", vm.IDE)
-	assert(t, len(vm.IDE) == 1, fmt.Sprintf("there should be 1 IDE controller, found %d", len(vm.IDE)))
-	assert(t, len(vm.SCSI) == 1, fmt.Sprintf("there should be 1 SCSI controller, found %d", len(vm.SCSI)))
-	assert(t, len(vm.SATA) == 0, fmt.Sprintf("there should be 0 SATA controller, found %d", len(vm.SATA)))
-
+	// fmt.Printf("%+v\n", vm.IDEDevices)
+	// fmt.Printf("%+v\n", vm.SCSIDevices)
+	assert(t, len(vm.IDEDevices) == 2, fmt.Sprintf("there should be 2 IDE devices, found %d", len(vm.IDEDevices)))
+	assert(t, len(vm.SCSIDevices) == 3, fmt.Sprintf("there should be 3 SCSI devices, found %d", len(vm.SCSIDevices)))
+	assert(t, len(vm.SATADevices) == 0, fmt.Sprintf("there should be 0 SATA controller, found %d", len(vm.SATADevices)))
 }

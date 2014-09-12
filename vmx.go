@@ -30,6 +30,10 @@ func Unmarshal(data []byte, v interface{}) error {
 
 // Parses struct tag
 func parseTag(tag string) (string, bool, error) {
+	if tag == "" {
+		return "", false, nil
+	}
+
 	omitempty := false
 
 	// Takes out first colon found
