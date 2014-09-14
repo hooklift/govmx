@@ -86,8 +86,63 @@ func (e *Encoder) encode(val reflect.Value) error {
 // When an array or slice type is found in the Go structure, this function encodes it
 // recursively.
 func (e *Encoder) encodeArray(valueField reflect.Value, key string) error {
+	adaptersCnt := 0
+	devicesCnt := 0
+
 	for i := 0; i < valueField.Len(); i++ {
-		e.parentKey = key + strconv.Itoa(i)
+		switch key {
+		case "ide":
+			if i >= (MAX_IDE_ADAPTERS * MAX_IDE_DEVICES_PER_ADAPTER) {
+				return nil
+			}
+
+			if devicesCnt >= MAX_IDE_DEVICES_PER_ADAPTER {
+				adaptersCnt++
+				devicesCnt = 0
+			}
+
+			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+			devicesCnt++
+
+		case "scsi":
+			if i >= (MAX_SCSI_ADAPTERS * MAX_SCSI_DEVICES_PER_ADAPTER) {
+				return nil
+			}
+
+			if devicesCnt >= MAX_SCSI_DEVICES_PER_ADAPTER {
+				adaptersCnt++
+				devicesCnt = 0
+			}
+
+			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+			devicesCnt++
+		case "sata":
+			if i >= (MAX_SATA_ADAPTERS * MAX_SATA_DEVICES_PER_ADAPTER) {
+				return nil
+			}
+
+			if devicesCnt >= MAX_SATA_DEVICES_PER_ADAPTER {
+				adaptersCnt++
+				devicesCnt = 0
+			}
+
+			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+			devicesCnt++
+		case "usb":
+			if i >= MAX_USB_ADAPTERS*MAX_USB_DEVICES {
+				return nil
+			}
+
+			e.parentKey = fmt.Sprintf("%s:%d", key, devicesCnt)
+			devicesCnt++
+		case "ethernet":
+			if i >= MAX_VNICS {
+				return nil
+			}
+			e.parentKey = key + strconv.Itoa(i)
+		default:
+			e.parentKey = key + strconv.Itoa(i)
+		}
 
 		err := e.encode(valueField.Index(i))
 		if err != nil {

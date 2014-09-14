@@ -9,6 +9,33 @@ import (
 	"strings"
 )
 
+// Maximum values for a virtual machine
+// From http://www.vmware.com/pdf/vsphere5/r55/vsphere-55-configuration-maximums.pdf
+const (
+	MAX_VCPUS = 64
+	// Megabytes
+	MAX_MEMORY                   = 1000000 // 1tib
+	MAX_IDE_ADAPTERS             = 2
+	MAX_IDE_DEVICES_PER_ADAPTER  = 2
+	MAX_SATA_ADAPTERS            = 4
+	MAX_SATA_DEVICES_PER_ADAPTER = 30
+	MAX_SCSI_ADAPTERS            = 4
+	MAX_SCSI_DEVICES_PER_ADAPTER = 15
+	MAX_VDISKS                   = 60
+	// Megabytes
+	MAX_VDISK_SIZE                 = 6200000 // 62tib
+	MAX_FLOPPY_ADAPTERS            = 1
+	MAX_FLOPPY_DEVICES             = 2
+	MAX_VNICS                      = 10
+	MAX_USB_ADAPTERS               = 1
+	MAX_USB_DEVICES                = 20
+	MAX_PARALLEL_PORTS             = 3
+	MAX_SERIAL_PORTS               = 4
+	MAX_REMOTE_CONSOLE_CONNECTIONS = 40
+	// Megabytes
+	MAX_VIDEO_MEMORY = 512
+)
+
 // Marshal traverses the value v recursively.
 // If an encountered value implements the Marshaler interface
 // and is not a nil pointer, Marshal calls its MarshalVMX method
