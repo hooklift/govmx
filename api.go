@@ -18,6 +18,7 @@ type Ethernet struct {
 
 type SATADevice struct {
 	Present        bool   `vmx:"present,omitempty"`
+	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
 	Type           string `vmx:"devicetype,omitempty"`
 	Filename       string `vmxl:"filename,omitempty"`
@@ -25,6 +26,7 @@ type SATADevice struct {
 
 type SCSIDevice struct {
 	Present        bool   `vmx:"present,omitempty"`
+	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
 	PCISlot        int    `vmx:"pcislotnumber,omitempty"`
 	VirtualDev     string `vmx:"virtualdev,omitempty"`
@@ -34,6 +36,7 @@ type SCSIDevice struct {
 
 type IDEDevice struct {
 	Present        bool   `vmx:"present,omitempty"`
+	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
 	Type           string `vmx:"devicetype,omitempty"`
 	Filename       string `vmxl:"filename,omitempty"`
