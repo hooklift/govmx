@@ -139,17 +139,49 @@ func TestMarshalArray(t *testing.T) {
 		LinkStatePropagation bool   `vmx:"linkStatePropagation.enable,omitempty"`
 	}
 
+	type SATADevice struct {
+		Present  bool   `vmx:"present,omitempty"`
+		Type     string `vmx:"devicetype,omitempty"`
+		Filename string `vmxl:"filename,omitempty"`
+	}
+
+	type SCSIDevice struct {
+		Present    bool   `vmx:"present"`
+		PCISlot    uint   `vmx:"pcislotnumber,omitempty"`
+		VirtualDev string `vmx:"virtualdev,omitempty"`
+		Type       string `vmx:"devicetype"`
+		Filename   string `vmxl:"filename,omitempty"`
+	}
+
+	type IDEDevice struct {
+		Present  bool   `vmx:"present,omitempty"`
+		Type     string `vmx:"devicetype,omitempty"`
+		Filename string `vmx:"filename,omitempty"`
+	}
+
+	type USBDevice struct {
+		Present bool   `vmx:"present,omitempty"`
+		Speed   uint   `vmx:"speed,omitempty"`
+		Type    string `vmx:"devicetype,omitempty"`
+		Port    uint   `vmx:"port,omitempty"`
+		Parent  string `vmx:"parent,omitmepty"`
+	}
+
 	type VM struct {
-		Encoding    string     `vmx:".encoding"`
-		Annotation  string     `vmx:"annotation"`
-		Vhardware   Vhardware  `vmx:"virtualHW"`
-		Memsize     uint       `vmx:"memsize"`
-		Numvcpus    uint       `vmx:"numvcpus"`
-		MemHotAdd   bool       `vmx:"mem.hotadd"`
-		DisplayName string     `vmx:"displayName"`
-		GuestOS     string     `vmx:"guestOS"`
-		Autoanswer  bool       `vmx:"msg.autoAnswer"`
-		Ethernet    []Ethernet `vmx:"ethernet"`
+		Encoding    string       `vmx:".encoding"`
+		Annotation  string       `vmx:"annotation"`
+		Vhardware   Vhardware    `vmx:"virtualHW"`
+		Memsize     uint         `vmx:"memsize"`
+		Numvcpus    uint         `vmx:"numvcpus"`
+		MemHotAdd   bool         `vmx:"mem.hotadd"`
+		DisplayName string       `vmx:"displayName"`
+		GuestOS     string       `vmx:"guestOS"`
+		Autoanswer  bool         `vmx:"msg.autoAnswer"`
+		Ethernet    []Ethernet   `vmx:"ethernet"`
+		IDEDevices  []IDEDevice  `vmx:"ide"`
+		SCSIDevices []SCSIDevice `vmx:"scsi"`
+		SATADevices []SATADevice `vmx:"sata"`
+		USBDevices  []USBDevice  `vmx:"usb"`
 	}
 
 	vm := new(VM)
@@ -159,6 +191,7 @@ func TestMarshalArray(t *testing.T) {
 		Version: "9",
 		Compat:  "hosted",
 	}
+
 	vm.Ethernet = []Ethernet{
 		{
 			StartConnected:       true,
@@ -178,12 +211,56 @@ func TestMarshalArray(t *testing.T) {
 			AddressType:    "generated",
 		},
 	}
+
+	vm.USBDevices = []USBDevice{
+		{
+			Present: true,
+			Speed:   2,
+			Type:    "hub",
+			Port:    1,
+			Parent:  "1",
+		},
+		{
+			Present: true,
+			Type:    "hid",
+			Port:    0,
+			Parent:  "-1",
+		},
+	}
+
 	vm.Memsize = 1024
 	vm.Numvcpus = 2
 	vm.MemHotAdd = false
 	vm.DisplayName = "test"
 	vm.GuestOS = "other3xlinux-64"
 	vm.Autoanswer = true
+
+	vm.IDEDevices = []IDEDevice{
+		{
+			Present:  true,
+			Type:     "cdrom-image",
+			Filename: "coreos.img",
+		},
+		{
+			Present: true,
+			Type:    "cdrom-raw",
+		},
+		{
+			Present:  true,
+			Type:     "cdrom-image",
+			Filename: "coreos-alpha.img",
+		},
+		{
+			Present:  true,
+			Type:     "cdrom-image",
+			Filename: "coreos-beta.img",
+		},
+		{
+			Present:  true,
+			Type:     "cdrom-image",
+			Filename: "coreos-beta2.img",
+		},
+	}
 
 	data, err := Marshal(vm)
 	ok(t, err)
@@ -210,6 +287,25 @@ ethernet1.connectionType = "nat"
 ethernet1.virtualDev = "e1000"
 ethernet1.wakeOnPcktRcv = "false"
 ethernet1.addressType = "generated"
+ide0:0.present = "true"
+ide0:0.devicetype = "cdrom-image"
+ide0:0.filename = "coreos.img"
+ide0:1.present = "true"
+ide0:1.devicetype = "cdrom-raw"
+ide1:0.present = "true"
+ide1:0.devicetype = "cdrom-image"
+ide1:0.filename = "coreos-alpha.img"
+ide1:1.present = "true"
+ide1:1.devicetype = "cdrom-image"
+ide1:1.filename = "coreos-beta.img"
+usb:0.present = "true"
+usb:0.speed = "2"
+usb:0.devicetype = "hub"
+usb:0.port = "1"
+usb:0.parent = "1"
+usb:1.present = "true"
+usb:1.devicetype = "hid"
+usb:1.parent = "-1"
 `
 	equals(t, expected, string(data))
 }

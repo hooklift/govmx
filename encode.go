@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
 type Encoder struct {
@@ -87,8 +86,63 @@ func (e *Encoder) encode(val reflect.Value) error {
 // When an array or slice type is found in the Go structure, this function encodes it
 // recursively.
 func (e *Encoder) encodeArray(valueField reflect.Value, key string) error {
+	adaptersCnt := 0
+	devicesCnt := 0
+
 	for i := 0; i < valueField.Len(); i++ {
-		e.parentKey = key + strconv.Itoa(i)
+		switch key {
+		case "ide":
+			if i >= (MAX_IDE_ADAPTERS * MAX_IDE_DEVICES_PER_ADAPTER) {
+				return nil
+			}
+
+			if devicesCnt >= MAX_IDE_DEVICES_PER_ADAPTER {
+				adaptersCnt++
+				devicesCnt = 0
+			}
+
+			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+			devicesCnt++
+
+		case "scsi":
+			if i >= (MAX_SCSI_ADAPTERS * MAX_SCSI_DEVICES_PER_ADAPTER) {
+				return nil
+			}
+
+			if devicesCnt >= MAX_SCSI_DEVICES_PER_ADAPTER {
+				adaptersCnt++
+				devicesCnt = 0
+			}
+
+			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+			devicesCnt++
+		case "sata":
+			if i >= (MAX_SATA_ADAPTERS * MAX_SATA_DEVICES_PER_ADAPTER) {
+				return nil
+			}
+
+			if devicesCnt >= MAX_SATA_DEVICES_PER_ADAPTER {
+				adaptersCnt++
+				devicesCnt = 0
+			}
+
+			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+			devicesCnt++
+		case "usb":
+			if i >= MAX_USB_ADAPTERS*MAX_USB_DEVICES {
+				return nil
+			}
+
+			e.parentKey = fmt.Sprintf("%s:%d", key, devicesCnt)
+			devicesCnt++
+		case "ethernet":
+			if i >= MAX_VNICS {
+				return nil
+			}
+			e.parentKey = key + strconv.Itoa(i)
+		default:
+			e.parentKey = key + strconv.Itoa(i)
+		}
 
 		err := e.encode(valueField.Index(i))
 		if err != nil {
@@ -113,35 +167,6 @@ func (e *Encoder) encodeStruct(valueField reflect.Value, key string) error {
 	e.parentKey = ""
 	e.currentRecursion--
 	return nil
-}
-
-// Parses struct tag
-func parseTag(tag string) (string, bool, error) {
-	omitempty := false
-
-	// Takes out first colon found
-	parts := strings.Split(tag, ":")
-	if len(parts) < 2 || parts[1] == "" {
-		return "", omitempty, fmt.Errorf("Invalid tag: %s", tag)
-	}
-
-	if parts[1] == `""` {
-		return "", omitempty, fmt.Errorf("Tag name is missing: %s", tag)
-	}
-
-	// Takes out double quotes
-	parts2 := strings.Split(parts[1], `"`)
-	if len(parts2) < 2 {
-		return "", omitempty, fmt.Errorf("Tag name has to be enclosed in double quotes: %s", tag)
-	}
-
-	values := strings.Split(parts2[1], ",")
-	if len(values) > 1 && values[1] == "omitempty" {
-		omitempty = true
-
-	}
-
-	return values[0], omitempty, nil
 }
 
 // Checks whether or not the reflected value is empty
