@@ -98,8 +98,15 @@ softPowerOff = "FALSE"
 sound.startconnected = "FALSE"
 tools.synctime = "TRUE"
 tools.upgrade.policy = "upgradeAtPowerCycle"
-usb.pcislotnumber = "-1"
-usb.present = "FALSE"
+usb:1.speed = "2"
+usb:1.present = "TRUE"
+usb:1.deviceType = "hub"
+usb:1.port = "1"
+usb:1.parent = "-1"
+usb:0.present = "TRUE"
+usb:0.deviceType = "hid"
+usb:0.port = "0"
+usb:0.parent = "-1"
 uuid.action = "create"
 uuid.bios = "56 4d 59 1a 1a 9b 5f d8-29 6c 70 d0 bf 20 41 99"
 uuid.location = "56 4d 59 1a 1a 9b 5f d8-29 6c 70 d0 bf 20 41 99"
@@ -155,6 +162,14 @@ func TestUnmarshal(t *testing.T) {
 		Filename string `vmxl:"filename,omitempty"`
 	}
 
+	type USBDevice struct {
+		Present bool   `vmx:"present,omitempty"`
+		Speed   uint   `vmx:"speed,omitempty"`
+		Type    string `vmx:"devicetype,omitempty"`
+		Port    uint   `vmx:"port,omitempty"`
+		Parent  string `vmx:"parent,omitmepty"`
+	}
+
 	type PowerType struct {
 		PowerOff string `vmx:"poweroff,omitempty"`
 		PowerOn  string `vmx:"poweron,omitempty"`
@@ -177,6 +192,7 @@ func TestUnmarshal(t *testing.T) {
 		IDEDevices  []IDEDevice  `vmx:"ide"`
 		SCSIDevices []SCSIDevice `vmx:"scsi"`
 		SATADevices []SATADevice `vmx:"sata"`
+		USBDevices  []USBDevice  `vmx:"usb"`
 	}
 
 	vm := new(VM)
@@ -188,7 +204,9 @@ func TestUnmarshal(t *testing.T) {
 	assert(t, vm.Numvcpus == 1, "there should be 1 vcpu")
 	// fmt.Printf("%+v\n", vm.IDEDevices)
 	// fmt.Printf("%+v\n", vm.SCSIDevices)
+	//fmt.Printf("%+v\n", vm.USBDevices)
 	assert(t, len(vm.IDEDevices) == 2, fmt.Sprintf("there should be 2 IDE devices, found %d", len(vm.IDEDevices)))
 	assert(t, len(vm.SCSIDevices) == 3, fmt.Sprintf("there should be 3 SCSI devices, found %d", len(vm.SCSIDevices)))
 	assert(t, len(vm.SATADevices) == 0, fmt.Sprintf("there should be 0 SATA controller, found %d", len(vm.SATADevices)))
+	assert(t, len(vm.USBDevices) == 2, fmt.Sprintf("there should be 2 USB devices, found %d", len(vm.USBDevices)))
 }
