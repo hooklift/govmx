@@ -127,81 +127,13 @@ ethernet3.generatedAddressOffset = "30"
 `
 
 func TestUnmarshal(t *testing.T) {
-	type Vhardware struct {
-		Version int    `vmx:"version"`
-		Compat  string `vmx:"productCompatibility"`
-	}
-
-	type Ethernet struct {
-		StartConnected       bool   `vmx:"startConnected"`
-		Present              bool   `vmx:"present"`
-		ConnectionType       string `vmx:"connectionType"`
-		VirtualDev           string `vmx:"virtualDev"`
-		WakeOnPcktRcv        bool   `vmx:"wakeOnPcktRcv"`
-		AddressType          string `vmx:"addressType"`
-		LinkStatePropagation bool   `vmx:"linkStatePropagation.enable,omitempty"`
-	}
-
-	type SATADevice struct {
-		Present  bool   `vmx:"present,omitempty"`
-		Type     string `vmx:"devicetype,omitempty"`
-		Filename string `vmxl:"filename,omitempty"`
-	}
-
-	type SCSIDevice struct {
-		Present    bool   `vmx:"present"`
-		PCISlot    uint   `vmx:"pcislotnumber,omitempty"`
-		VirtualDev string `vmx:"virtualdev,omitempty"`
-		Type       string `vmx:"devicetype"`
-		Filename   string `vmxl:"filename,omitempty"`
-	}
-
-	type IDEDevice struct {
-		Present  bool   `vmx:"present,omitempty"`
-		Type     string `vmx:"devicetype,omitempty"`
-		Filename string `vmxl:"filename,omitempty"`
-	}
-
-	type USBDevice struct {
-		Present bool   `vmx:"present,omitempty"`
-		Speed   uint   `vmx:"speed,omitempty"`
-		Type    string `vmx:"devicetype,omitempty"`
-		Port    uint   `vmx:"port,omitempty"`
-		Parent  string `vmx:"parent,omitmepty"`
-	}
-
-	type PowerType struct {
-		PowerOff string `vmx:"poweroff,omitempty"`
-		PowerOn  string `vmx:"poweron,omitempty"`
-		Reset    string `vmx:"reset,omitempty"`
-		Suspend  string `vmx:"suspend,omitempty"`
-	}
-
-	type VM struct {
-		Encoding    string       `vmx:".encoding"`
-		PowerType   PowerType    `vmx:"powertype"`
-		Annotation  string       `vmx:"annotation"`
-		Vhardware   Vhardware    `vmx:"virtualhw"`
-		Memsize     uint         `vmx:"memsize"`
-		Numvcpus    uint         `vmx:"numvcpus"`
-		MemHotAdd   bool         `vmx:"mem.hotadd"`
-		DisplayName string       `vmx:"displayName"`
-		GuestOS     string       `vmx:"guestOS"`
-		Autoanswer  bool         `vmx:"msg.autoAnswer"`
-		Ethernet    []Ethernet   `vmx:"ethernet"`
-		IDEDevices  []IDEDevice  `vmx:"ide"`
-		SCSIDevices []SCSIDevice `vmx:"scsi"`
-		SATADevices []SATADevice `vmx:"sata"`
-		USBDevices  []USBDevice  `vmx:"usb"`
-	}
-
-	vm := new(VM)
+	vm := new(VirtualMachine)
 	err := Unmarshal([]byte(data), vm)
 	ok(t, err)
 	//fmt.Printf("%+v\n", vm.PowerType)
 	assert(t, vm.Vhardware.Version == 9, "vhwversion should be 9")
 	assert(t, len(vm.Ethernet) == 3, "there should be 3 ethernet devices")
-	assert(t, vm.Numvcpus == 1, "there should be 1 vcpu")
+	assert(t, vm.NumvCPUs == 1, "there should be 1 vcpu")
 	// fmt.Printf("%+v\n", vm.IDEDevices)
 	// fmt.Printf("%+v\n", vm.SCSIDevices)
 	//fmt.Printf("%+v\n", vm.USBDevices)
