@@ -6,6 +6,7 @@ type Vhardware struct {
 }
 
 type Ethernet struct {
+	VMXID                string
 	StartConnected       bool   `vmx:"startconnected,omitempty"`
 	Present              bool   `vmx:"present,omitempty"`
 	ConnectionType       string `vmx:"connectiontype,omitempty"`
@@ -17,6 +18,7 @@ type Ethernet struct {
 }
 
 type SATADevice struct {
+	VMXID          string
 	Present        bool   `vmx:"present,omitempty"`
 	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
@@ -25,6 +27,7 @@ type SATADevice struct {
 }
 
 type SCSIDevice struct {
+	VMXID          string
 	Present        bool   `vmx:"present,omitempty"`
 	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
@@ -35,6 +38,7 @@ type SCSIDevice struct {
 }
 
 type IDEDevice struct {
+	VMXID          string
 	Present        bool   `vmx:"present,omitempty"`
 	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
@@ -43,6 +47,7 @@ type IDEDevice struct {
 }
 
 type USBDevice struct {
+	VMXID   string
 	Present bool   `vmx:"present,omitempty"`
 	Speed   uint   `vmx:"speed,omitempty"`
 	Type    string `vmx:"devicetype,omitempty"`
@@ -58,12 +63,14 @@ type PowerType struct {
 }
 
 type Sound struct {
+	VMXID      string
 	Present    bool   `vmx:"present,omitempty"`
 	Filename   string `vmx:"filename,omitempty"`
 	Autodetect bool   `vmx:"autodetect,omitempty"`
 }
 
 type SerialPort struct {
+	VMXID              string
 	StartConnected     bool   `vmx:"startconnected,omitempty"`
 	Present            bool   `vmx:"present,omitempty"`
 	Filetype           string `vmx:"filetype,omitempty"`
@@ -76,6 +83,7 @@ type SerialPort struct {
 }
 
 type PCIBridge struct {
+	VMXID      string
 	Present    bool   `vmx:"present,omitempty"`
 	VirtualDev string `vmx:"virtualdev,omitempty"`
 	SlotNumber int    `vmx:"pcislotnumber,omitempty"`
@@ -113,6 +121,7 @@ type RemoteDisplay struct {
 }
 
 type SharedFolder struct {
+	VMXID       string
 	Present     bool   `vmx:"present,omitempty"`
 	Enabled     bool   `vmx:"enabled,omitempty"`
 	ReadAccess  bool   `vmx:"readaccess,omitempty"`
@@ -138,6 +147,7 @@ type Isolation struct {
 }
 
 type FloppyDevice struct {
+	VMXID          string
 	Present        bool   `vmx:"present,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
 	Autodetect     bool   `vmx:"autodetect,omitempty"`
@@ -147,6 +157,7 @@ type FloppyDevice struct {
 }
 
 type VMCI struct {
+	VMXID   string
 	ID      string `vmx:"id,omitempty"`
 	Present bool   `vmx:"present,omitempty"`
 	PCISlot int    `vmx:"pcislotnumber,omitempty"`

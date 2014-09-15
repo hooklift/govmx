@@ -121,6 +121,14 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 	for i := 0; i < val.NumField(); i++ {
 		typeField := val.Type().Field(i)
 		tag := string(typeField.Tag)
+		valueField := val.Field(i)
+
+		// Internal govmx way of identifying elements in a slice so that
+		// users can delete them individually.
+		if typeField.Name == "VMXID" {
+			valueField.SetString(key)
+			continue
+		}
 
 		if tag == "" {
 			continue
@@ -137,7 +145,6 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 
 		destKey = strings.ToLower(destKey)
 
-		valueField := val.Field(i)
 		if destKey == "-" || !valueField.CanSet() {
 			log.Printf("Cant set type %s tagged as %s\n", valueField.Type().String(), destKey)
 			continue
@@ -249,8 +256,6 @@ func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
 		if key != index {
 			newKey = key + index
 		}
-
-		//fmt.Printf("===========> Creating slice element %s using type %s<==============\n", newKey, valueField.Type().String())
 
 		err := d.decode(valueField.Index(length), newKey)
 

@@ -59,7 +59,7 @@ func (e *Encoder) encode(val reflect.Value) error {
 		}
 
 		if key == "-" || !valueField.IsValid() ||
-			(omitempty && isEmptyValue(valueField)) {
+			(omitempty && isEmptyValue(valueField) || key == "") {
 			continue
 		}
 
