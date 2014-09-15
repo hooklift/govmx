@@ -158,30 +158,30 @@ func TestMarshalArray(t *testing.T) {
 	vm.Autoanswer = true
 
 	vm.IDEDevices = []IDEDevice{
-		{
+		{Device: Device{
 			Present:  true,
 			Type:     "cdrom-image",
 			Filename: "coreos.img",
-		},
-		{
+		}},
+		{Device: Device{
 			Present: true,
 			Type:    "cdrom-raw",
-		},
-		{
+		}},
+		{Device: Device{
 			Present:  true,
 			Type:     "cdrom-image",
 			Filename: "coreos-alpha.img",
-		},
-		{
+		}},
+		{Device: Device{
 			Present:  true,
 			Type:     "cdrom-image",
 			Filename: "coreos-beta.img",
-		},
-		{
+		}},
+		{Device: Device{
 			Present:  true,
 			Type:     "cdrom-image",
 			Filename: "coreos-beta2.img",
-		},
+		}},
 	}
 
 	data, err := Marshal(vm)
