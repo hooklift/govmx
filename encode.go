@@ -50,7 +50,6 @@ func (e *Encoder) encode(val reflect.Value) error {
 
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
-
 		typeField := val.Type().Field(i)
 		tag := typeField.Tag
 
