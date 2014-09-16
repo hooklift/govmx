@@ -157,6 +157,10 @@ type VMCI struct {
 	PCISlot int    `vmx:"pcislotnumber,omitempty"`
 }
 
+type VMotion struct {
+	CheckpointSize string `vmx:"checkpointFBSize"`
+}
+
 type VirtualMachine struct {
 	Encoding        string    `vmx:".encoding,omitempty"`
 	ExtendedCfgFile string    `vmx:"extendedconfigfile,omitempty"`
@@ -177,6 +181,7 @@ type VirtualMachine struct {
 	CleanShutdown   bool      `vmx:"cleanshutdown,omitempty"`
 	SoftPowerOff    bool      `vmx:"softpoweroff,omitempty"`
 	VMCI            VMCI      `vmx:"vmci0,omitempty"`
+	VMotion         VMotion   `vmx:"vmotion"`
 	// Enable or not nested virtualiation
 	VHVEnable     bool           `vmx:"vhv.enable,omitempty"`
 	RemoteDisplay RemoteDisplay  `vmx:"remotedisplay,omitempty"`
