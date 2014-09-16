@@ -101,6 +101,9 @@ numvcpus = "2"
 displayname = "test"
 guestos = "other3xlinux-64"
 msg.autoanswer = "true"
+sound.present = "false"
+usb.present = "false"
+rtc.diffFromUTC = "0"
 `
 	equals(t, expected, string(data))
 }
@@ -184,6 +187,17 @@ func TestMarshalArray(t *testing.T) {
 		}},
 	}
 
+	vm.SCSIDevices = []SCSIDevice{
+		{Device: Device{
+			Present:  true,
+			Filename: "",
+		}, VirtualDev: "lsilogic"},
+		{Device: Device{
+			Present:  true,
+			Filename: "coreos_production_vmware_image.vmdk",
+		}},
+	}
+
 	data, err := Marshal(vm)
 	ok(t, err)
 	expected := `.encoding = "utf-8"
@@ -195,6 +209,9 @@ numvcpus = "2"
 displayname = "test"
 guestos = "other3xlinux-64"
 msg.autoanswer = "true"
+sound.present = "false"
+usb.present = "false"
+rtc.diffFromUTC = "0"
 ethernet0.startconnected = "true"
 ethernet0.present = "true"
 ethernet0.connectiontype = "bridged"
@@ -217,6 +234,10 @@ ide1:0.filename = "coreos-alpha.img"
 ide1:1.present = "true"
 ide1:1.devicetype = "cdrom-image"
 ide1:1.filename = "coreos-beta.img"
+scsi0.present = "true"
+scsi0.virtualdev = "lsilogic"
+scsi0:0.present = "true"
+scsi0:0.filename = "coreos_production_vmware_image.vmdk"
 usb:0.present = "true"
 usb:0.speed = "2"
 usb:0.devicetype = "hub"

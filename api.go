@@ -8,7 +8,7 @@ type Vhardware struct {
 type Ethernet struct {
 	VMXID                string
 	StartConnected       bool   `vmx:"startconnected,omitempty"`
-	Present              bool   `vmx:"present,omitempty"`
+	Present              bool   `vmx:"present"`
 	ConnectionType       string `vmx:"connectiontype,omitempty"`
 	VirtualDev           string `vmx:"virtualdev,omitempty"`
 	WakeOnPcktRcv        bool   `vmx:"wakeonpcktrcv,omitempty"`
@@ -19,7 +19,7 @@ type Ethernet struct {
 
 type Device struct {
 	VMXID          string
-	Present        bool   `vmx:"present,omitempty"`
+	Present        bool   `vmx:"present"`
 	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
 	Type           string `vmx:"devicetype,omitempty"`
@@ -42,7 +42,7 @@ type IDEDevice struct {
 
 type USBDevice struct {
 	VMXID   string
-	Present bool   `vmx:"present,omitempty"`
+	Present bool   `vmx:"present"`
 	Speed   uint   `vmx:"speed,omitempty"`
 	Type    string `vmx:"devicetype,omitempty"`
 	Port    uint   `vmx:"port,omitempty"`
@@ -58,7 +58,7 @@ type PowerType struct {
 
 type Sound struct {
 	VMXID      string
-	Present    bool   `vmx:"present,omitempty"`
+	Present    bool   `vmx:"present"`
 	Filename   string `vmx:"filename,omitempty"`
 	Autodetect bool   `vmx:"autodetect,omitempty"`
 }
@@ -66,7 +66,7 @@ type Sound struct {
 type SerialPort struct {
 	VMXID              string
 	StartConnected     bool   `vmx:"startconnected,omitempty"`
-	Present            bool   `vmx:"present,omitempty"`
+	Present            bool   `vmx:"present"`
 	Filetype           string `vmx:"filetype,omitempty"`
 	Filename           string `vmx:"filename,omitempty"`
 	Autodetect         bool   `vmx:"autodetect,omitempty"`
@@ -78,7 +78,7 @@ type SerialPort struct {
 
 type PCIBridge struct {
 	VMXID      string
-	Present    bool   `vmx:"present,omitempty"`
+	Present    bool   `vmx:"present"`
 	VirtualDev string `vmx:"virtualdev,omitempty"`
 	SlotNumber int    `vmx:"pcislotnumber,omitempty"`
 	Functions  uint   `vmx:"functions,omitempty"`
@@ -116,7 +116,7 @@ type RemoteDisplay struct {
 
 type SharedFolder struct {
 	VMXID       string
-	Present     bool   `vmx:"present,omitempty"`
+	Present     bool   `vmx:"present"`
 	Enabled     bool   `vmx:"enabled,omitempty"`
 	ReadAccess  bool   `vmx:"readaccess,omitempty"`
 	WriteAccess bool   `vmx:"writeaccess,omitempty"`
@@ -142,7 +142,7 @@ type Isolation struct {
 
 type FloppyDevice struct {
 	VMXID          string
-	Present        bool   `vmx:"present,omitempty"`
+	Present        bool   `vmx:"present"`
 	StartConnected bool   `vmx:"startconnected,omitempty"`
 	Autodetect     bool   `vmx:"autodetect,omitempty"`
 	Filename       string `vmx:"filename,omitempty"`
@@ -151,14 +151,30 @@ type FloppyDevice struct {
 }
 
 type VMCI struct {
-	VMXID   string
-	ID      string `vmx:"id,omitempty"`
-	Present bool   `vmx:"present,omitempty"`
-	PCISlot int    `vmx:"pcislotnumber,omitempty"`
+	VMXID string
+	ID    string `vmx:"id,omitempty"`
+	// We omit adding vmci.present = "false" since VMWare defaults it to TRUE
+	// given that it increases IO performance between VMs in the same host
+	Present bool `vmx:"present,omitempty"`
+	PCISlot int  `vmx:"pcislotnumber,omitempty"`
 }
 
 type VMotion struct {
 	CheckpointSize string `vmx:"checkpointFBSize,omitempty"`
+}
+
+type USB struct {
+	Present            bool `vmx:"present"`
+	GenericAutoconnect bool `vmx:"generic.autoconnect,omitempty"`
+}
+
+type RTC struct {
+	DiffFromUTC int `vmx:"diffFromUTC"`
+}
+
+type BIOS struct {
+	BootOrder string `vmx:"bootorder,omitempty"`
+	HDDOrder  string `vmx:"hddorder,omitempty"`
 }
 
 type VirtualMachine struct {
@@ -181,7 +197,9 @@ type VirtualMachine struct {
 	CleanShutdown   bool      `vmx:"cleanshutdown,omitempty"`
 	SoftPowerOff    bool      `vmx:"softpoweroff,omitempty"`
 	VMCI            VMCI      `vmx:"vmci0,omitempty"`
-	VMotion         VMotion   `vmx:"vmotion"`
+	VMotion         VMotion   `vmx:"vmotion,omitempty"`
+	USB             USB       `vmx:"usb,omitempty"`
+	RTC             RTC       `vmx:"rtc,omitempty"`
 	// Enable or not nested virtualiation
 	VHVEnable     bool           `vmx:"vhv.enable,omitempty"`
 	RemoteDisplay RemoteDisplay  `vmx:"remotedisplay,omitempty"`

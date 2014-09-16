@@ -51,6 +51,7 @@ func (e *Encoder) encode(val reflect.Value) error {
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
+
 		tag := typeField.Tag
 
 		key, omitempty, err := parseTag(string(tag))
@@ -64,16 +65,20 @@ func (e *Encoder) encode(val reflect.Value) error {
 			continue
 		}
 
-		switch valueField.Kind() {
+		kind := valueField.Kind()
+		switch kind {
 		case reflect.Struct:
-			err = e.encodeStruct(valueField, key)
+			err = e.encodeStruct(valueField, typeField, key)
 		case reflect.Array, reflect.Slice:
 			err = e.encodeArray(valueField, key)
 		default:
 			if e.parentKey != "" {
 				key = e.parentKey + "." + key
 			}
-			e.buffer.WriteString(fmt.Sprintf("%s = \"%v\"\n", key, valueField.Interface()))
+
+			//fmt.Printf("parent key: %s, key: %s \n", e.parentKey, key)
+			value := valueField.Interface()
+			e.buffer.WriteString(fmt.Sprintf("%s = \"%v\"\n", key, value))
 		}
 
 		if err != nil {
@@ -115,8 +120,13 @@ func (e *Encoder) encodeArray(valueField reflect.Value, key string) error {
 				devicesCnt = 0
 			}
 
-			e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
-			devicesCnt++
+			val := valueField.Index(i).FieldByName("VirtualDev")
+			if !isEmptyValue(val) {
+				e.parentKey = fmt.Sprintf("%s%d", key, adaptersCnt)
+			} else {
+				e.parentKey = fmt.Sprintf("%s%d:%d", key, adaptersCnt, devicesCnt)
+				devicesCnt++
+			}
 		case "sata":
 			if i >= (MAX_SATA_ADAPTERS * MAX_SATA_DEVICES_PER_ADAPTER) {
 				return nil
@@ -154,7 +164,7 @@ func (e *Encoder) encodeArray(valueField reflect.Value, key string) error {
 }
 
 // Encodes a Go struct type into a VMX string, recursively.
-func (e *Encoder) encodeStruct(valueField reflect.Value, key string) error {
+func (e *Encoder) encodeStruct(valueField reflect.Value, typeField reflect.StructField, key string) error {
 	e.currentRecursion++
 	if e.currentRecursion > e.maxRecursion {
 		return nil
@@ -165,7 +175,13 @@ func (e *Encoder) encodeStruct(valueField reflect.Value, key string) error {
 	if err != nil {
 		return err
 	}
-	e.parentKey = ""
+
+	// Do not reset the key if we are dealing with an embedded struct
+	// as recursion level increases by one compared to normal cases
+	if !typeField.Anonymous {
+		e.parentKey = ""
+	}
+
 	e.currentRecursion--
 	return nil
 }
