@@ -53,18 +53,20 @@ func (d *Decoder) loadVMXMap() error {
 
 		parts := strings.Split(line, "=")
 		if len(parts) != 2 {
-			return fmt.Errorf("Invalid line: %s ", line)
+			errors = appendErrors(errors, fmt.Errorf("Invalid line: %s ", line))
 		}
 
-		sourceKey := strings.TrimSpace(parts[0])
-		sourceValue := strings.TrimSpace(parts[1])
-		sourceValue, err := strconv.Unquote(sourceValue)
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		unquotedVal, err := strconv.Unquote(value)
 		if err != nil {
-			errors = appendErrors(errors, err)
+			unquotedVal = value
+			//errors = appendErrors(errors, fmt.Errorf("Error unquoting vmx value %s: %v.", value, err))
 		}
 
-		sourceKey = strings.ToLower(sourceKey)
-		d.vmx[sourceKey] = sourceValue
+		key = strings.ToLower(key)
+		d.vmx[key] = unquotedVal
 	}
 
 	if err := d.scanner.Err(); err != nil {

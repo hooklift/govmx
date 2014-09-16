@@ -36,6 +36,10 @@ const (
 	MAX_VIDEO_MEMORY = 512
 )
 
+func init() {
+	//log.SetFlags(log.Lshortfile)
+}
+
 // Marshal traverses the value v recursively.
 // If an encountered value implements the Marshaler interface
 // and is not a nil pointer, Marshal calls its MarshalVMX method
