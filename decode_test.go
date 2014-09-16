@@ -30,6 +30,10 @@ func TestUnmarshal(t *testing.T) {
 	assert(t, len(vm.USBDevices) == 2, fmt.Sprintf("there should be 2 USB devices, found %d", len(vm.USBDevices)))
 
 	data, err = ioutil.ReadFile(filepath.Join(".", "fixtures", "a.vmx"))
-	err = Unmarshal([]byte(data), vm)
+	vm2 := new(VirtualMachine)
+	err = Unmarshal([]byte(data), vm2)
+	//fmt.Printf("%+v\n", vm2.SCSIDevices)
+	assert(t, len(vm2.SCSIDevices) == 2, fmt.Sprintf("%d != %d", len(vm2.SCSIDevices), 2))
+	assert(t, vm2.SCSIDevices[0].VMXID != "", fmt.Sprintf("VMXID should not be empty: ->%s<-", vm2.SCSIDevices[0].VMXID))
 	ok(t, err)
 }

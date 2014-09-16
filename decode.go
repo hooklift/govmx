@@ -132,7 +132,8 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 			continue
 		}
 
-		if tag == "" {
+		// Ignore untagged fields only if they are not embedded structs
+		if tag == "" && !typeField.Anonymous {
 			continue
 		}
 
@@ -142,7 +143,11 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 		}
 
 		if key != "" {
-			destKey = key + "." + destKey
+			if destKey != "" {
+				destKey = key + "." + destKey
+			} else {
+				destKey = key
+			}
 		}
 
 		destKey = strings.ToLower(destKey)
@@ -152,8 +157,7 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 			continue
 		}
 
-		kind := valueField.Kind()
-		err = d.reflectKind(kind, valueField, destKey)
+		err = d.reflectKind(valueField.Kind(), valueField, destKey)
 		if err != nil {
 			errors = appendErrors(errors, err)
 		}
