@@ -7,6 +7,7 @@ type Vhardware struct {
 
 type Ethernet struct {
 	VMXID                string
+	Address              string `vmx:"address,omitempty"`
 	StartConnected       bool   `vmx:"startconnected,omitempty"`
 	Present              bool   `vmx:"present"`
 	ConnectionType       string `vmx:"connectiontype,omitempty"`
@@ -178,7 +179,7 @@ type BIOS struct {
 }
 
 type Config struct {
-	Version string `vmx:"version"`
+	Version string `vmx:"version,omitempty"`
 }
 
 type VirtualMachine struct {
