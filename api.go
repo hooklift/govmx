@@ -158,7 +158,7 @@ type VMCI struct {
 }
 
 type VMotion struct {
-	CheckpointSize string `vmx:"checkpointFBSize"`
+	CheckpointSize string `vmx:"checkpointFBSize,omitempty"`
 }
 
 type VirtualMachine struct {
