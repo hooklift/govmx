@@ -177,6 +177,10 @@ type BIOS struct {
 	HDDOrder  string `vmx:"hddorder,omitempty"`
 }
 
+type Config struct {
+	Version string `vmx:"version"`
+}
+
 type VirtualMachine struct {
 	Encoding        string    `vmx:".encoding,omitempty"`
 	ExtendedCfgFile string    `vmx:"extendedconfigfile,omitempty"`
@@ -200,6 +204,7 @@ type VirtualMachine struct {
 	VMotion         VMotion   `vmx:"vmotion,omitempty"`
 	USB             USB       `vmx:"usb,omitempty"`
 	RTC             RTC       `vmx:"rtc,omitempty"`
+	Config          Config    `vmx:"config"`
 	// Enable or not nested virtualiation
 	VHVEnable     bool           `vmx:"vhv.enable,omitempty"`
 	RemoteDisplay RemoteDisplay  `vmx:"remotedisplay,omitempty"`
