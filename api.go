@@ -192,39 +192,50 @@ type VirtualMachine struct {
 	FloppyDevices []FloppyDevice `vmx:"floppy,omitempty"`
 }
 
-func (vm VirtualMachine) WalkDevices(f func(Device) bool, types ...string) bool {
-	var sata, ide, scsi bool
+// Bus type to use when attaching CD/DVD drives and disks.
+type BusType string
+
+// Disk controllers
+const (
+	IDE  BusType = "ide"
+	SCSI BusType = "scsi"
+	SATA BusType = "sata"
+)
+
+// Find executes the given function p on all the devices of one of the given
+// types until one of the calls returns true.
+// Find returns true only if one of the calls of p returned true.
+func (vm VirtualMachine) Find(p func(Device) bool, types ...BusType) bool {
+	return vm.walkDevices(p, types...)
+}
+
+// WalkDevices executes the given function f on all the devices of one of the
+// specified types.
+func (vm VirtualMachine) WalkDevices(f func(Device), types ...BusType) {
+	p := func(d Device) bool { f(d); return false }
+	vm.walkDevices(p, types...)
+}
+
+func (vm VirtualMachine) walkDevices(p func(Device) bool, types ...BusType) bool {
 	for _, t := range types {
 		switch t {
-		case "sata":
-			sata = true
-		case "ide":
-			ide = true
-		case "scsi":
-			scsi = true
-		}
-	}
-	if len(types) == 0 {
-		sata, ide, scsi = true, true, true
-	}
-	if ide {
-		for _, d := range vm.IDEDevices {
-			if f(d.Device) {
-				return true
+		case SATA:
+			for _, d := range vm.IDEDevices {
+				if p(d.Device) {
+					return true
+				}
 			}
-		}
-	}
-	if scsi {
-		for _, d := range vm.SCSIDevices {
-			if f(d.Device) {
-				return true
+		case IDE:
+			for _, d := range vm.SCSIDevices {
+				if p(d.Device) {
+					return true
+				}
 			}
-		}
-	}
-	if sata {
-		for _, d := range vm.SATADevices {
-			if f(d.Device) {
-				return true
+		case SCSI:
+			for _, d := range vm.SATADevices {
+				if p(d.Device) {
+					return true
+				}
 			}
 		}
 	}
