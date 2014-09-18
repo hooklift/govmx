@@ -191,3 +191,42 @@ type VirtualMachine struct {
 	USBDevices    []USBDevice    `vmx:"usb,omitempty"`
 	FloppyDevices []FloppyDevice `vmx:"floppy,omitempty"`
 }
+
+func (vm VirtualMachine) WalkDevices(f func(Device) bool, types ...string) bool {
+	var sata, ide, scsi bool
+	for _, t := range types {
+		switch t {
+		case "sata":
+			sata = true
+		case "ide":
+			ide = true
+		case "scsi":
+			scsi = true
+		}
+	}
+	if len(types) == 0 {
+		sata, ide, scsi = true, true, true
+	}
+	if ide {
+		for _, d := range vm.IDEDevices {
+			if f(d.Device) {
+				return true
+			}
+		}
+	}
+	if scsi {
+		for _, d := range vm.SCSIDevices {
+			if f(d.Device) {
+				return true
+			}
+		}
+	}
+	if sata {
+		for _, d := range vm.SATADevices {
+			if f(d.Device) {
+				return true
+			}
+		}
+	}
+	return false
+}
