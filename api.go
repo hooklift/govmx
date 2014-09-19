@@ -202,10 +202,10 @@ const (
 	SATA BusType = "sata"
 )
 
-// Find executes the given function p on all the devices of one of the given
-// types until one of the calls returns true.
-// Find returns true only if one of the calls of p returned true.
-func (vm VirtualMachine) Find(p func(Device) bool, types ...BusType) bool {
+// FindDevice executes the given function p on all the devices of one of the
+// given types until one of the calls returns true.
+// FindDevice returns true only if one of the calls of p returned true.
+func (vm VirtualMachine) FindDevice(p func(Device) bool, types ...BusType) bool {
 	return vm.walkDevices(p, types...)
 }
 
