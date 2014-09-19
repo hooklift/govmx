@@ -217,6 +217,9 @@ func (vm VirtualMachine) WalkDevices(f func(Device), types ...BusType) {
 }
 
 func (vm VirtualMachine) walkDevices(p func(Device) bool, types ...BusType) bool {
+	if len(types) == 0 {
+		types = []BusType{SATA, IDE, SCSI}
+	}
 	for _, t := range types {
 		switch t {
 		case SATA:
