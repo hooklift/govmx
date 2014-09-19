@@ -221,7 +221,7 @@ type VirtualMachine struct {
 	FloppyDevices []FloppyDevice `vmx:"floppy,omitempty"`
 }
 
-// Bus type to use when attaching CD/DVD drives and disks.
+// Bus type to use when attaching or detaching CD/DVD drives and disks.
 type BusType string
 
 // Disk controllers
@@ -254,19 +254,19 @@ func (vm VirtualMachine) walkDevices(p func(Device) bool, types ...BusType) bool
 	for _, t := range types {
 		switch t {
 		case SATA:
-			for _, d := range vm.IDEDevices {
+			for _, d := range vm.SATADevices {
 				if p(d.Device) {
 					return true
 				}
 			}
 		case IDE:
-			for _, d := range vm.SCSIDevices {
+			for _, d := range vm.IDEDevices {
 				if p(d.Device) {
 					return true
 				}
 			}
 		case SCSI:
-			for _, d := range vm.SATADevices {
+			for _, d := range vm.SCSIDevices {
 				if p(d.Device) {
 					return true
 				}
