@@ -204,6 +204,7 @@ const (
 
 // FindDevice executes the given function p on all the devices of one of the
 // given types until one of the calls returns true.
+// If no bus types are provided all will be used.
 // FindDevice returns true only if one of the calls of p returned true.
 func (vm VirtualMachine) FindDevice(p func(Device) bool, types ...BusType) bool {
 	return vm.walkDevices(p, types...)
@@ -211,6 +212,7 @@ func (vm VirtualMachine) FindDevice(p func(Device) bool, types ...BusType) bool 
 
 // WalkDevices executes the given function f on all the devices of one of the
 // specified types.
+// If no bus types are provided all will be used.
 func (vm VirtualMachine) WalkDevices(f func(Device), types ...BusType) {
 	p := func(d Device) bool { f(d); return false }
 	vm.walkDevices(p, types...)
