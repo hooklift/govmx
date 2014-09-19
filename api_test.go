@@ -36,7 +36,7 @@ func TestFindDevice(t *testing.T) {
 	})
 
 	assert(t, device.VMXID == ID, "%s != %s", device.VMXID, ID)
-	assert(t, device.Type == "cdrom-image", "%s != %s", device.Type, "cdrom-image")
+	assert(t, device.Type == CDROM_IMAGE, "%s != %s", device.Type, CDROM_IMAGE)
 
 	// Test finding devices from a specific controller
 	expectedSCSIDevices := 3

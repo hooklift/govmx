@@ -231,6 +231,12 @@ const (
 	SATA BusType = "sata"
 )
 
+// CDROM device types
+const (
+	CDROM_IMAGE string = "cdrom-image"
+	CDROM_RAW   string = "cdrom-raw"
+)
+
 // FindDevice executes the given function p on all the devices of one of the
 // given types until one of the calls returns true.
 // If no bus types are provided all will be used.
