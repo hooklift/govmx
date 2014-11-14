@@ -1,7 +1,7 @@
 # GoVMX
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/cloudescape/govmx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![GoDoc](https://godoc.org/github.com/cloudescape/govmx?status.svg)](https://godoc.org/github.com/cloudescape/govmx)
-[![Build Status](https://travis-ci.org/cloudescape/govmx.svg?branch=master)](https://travis-ci.org/cloudescape/govmx)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/hooklift/govmx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GoDoc](https://godoc.org/github.com/hooklift/govmx?status.svg)](https://godoc.org/github.com/hooklift/govmx)
+[![Build Status](https://travis-ci.org/hooklift/govmx.svg?branch=master)](https://travis-ci.org/hooklift/govmx)
 
 Data encoding and decoding library for VMware VMX files.
 
