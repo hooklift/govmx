@@ -37,7 +37,7 @@ func NewDecoder(reader io.Reader, errorUnmatched bool) *Decoder {
 
 // Loads VMX file in a map so we can do searches in O(1)
 func (d *Decoder) loadVMXMap() error {
-	errors := make([]string, 0)
+	var errors []string
 
 	if len(d.vmx) == 0 {
 		d.vmx = make(map[string]string)
@@ -222,10 +222,10 @@ func (d *Decoder) reflectKind(kind reflect.Kind, valueField reflect.Value, key s
 func (d *Decoder) decodeSlice(valueField reflect.Value, key string) error {
 	//fmt.Printf("[D] Decode slice tagged as: ->%s<-\n", key)
 
-	errors := make([]string, 0)
+	var errors []string
 	seenIndexes := make(map[string]bool)
 
-	for k, _ := range d.vmx {
+	for k := range d.vmx {
 		if !strings.HasPrefix(k, key) {
 			continue
 		}
