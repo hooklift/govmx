@@ -7,16 +7,24 @@ type Vhardware struct {
 
 type Ethernet struct {
 	VMXID                string
-	Address              string `vmx:"address,omitempty"`
-	StartConnected       bool   `vmx:"startconnected,omitempty"`
-	Present              bool   `vmx:"present"`
-	ConnectionType       string `vmx:"connectiontype,omitempty"`
-	VirtualDev           string `vmx:"virtualdev,omitempty"`
-	WakeOnPcktRcv        bool   `vmx:"wakeonpcktrcv,omitempty"`
-	AddressType          string `vmx:"addresstype,omitempty"`
-	LinkStatePropagation bool   `vmx:"linkstatepropagation.enable,omitempty"`
-	VNetwork             string `vmx:"vnet,omitempty"`
+	Address              string              `vmx:"address,omitempty"`
+	GeneratedAddress     string              `vmx:"generatedaddress,omit"`
+	StartConnected       bool                `vmx:"startconnected,omitempty"`
+	Present              bool                `vmx:"present"`
+	ConnectionType       string              `vmx:"connectiontype,omitempty"`
+	VirtualDev           string              `vmx:"virtualdev,omitempty"`
+	WakeOnPcktRcv        bool                `vmx:"wakeonpcktrcv,omitempty"`
+	AddressType          EthernetAddressType `vmx:"addresstype,omitempty"`
+	LinkStatePropagation bool                `vmx:"linkstatepropagation.enable,omitempty"`
+	VNetwork             string              `vmx:"vnet,omitempty"`
 }
+
+type EthernetAddressType string
+
+const (
+	MAC_TYPE_STATIC    = "static"
+	MAC_TYPE_GENERATED = "generated"
+)
 
 type Device struct {
 	VMXID          string
@@ -47,7 +55,7 @@ type USBDevice struct {
 	Speed   uint   `vmx:"speed,omitempty"`
 	Type    string `vmx:"devicetype,omitempty"`
 	Port    uint   `vmx:"port,omitempty"`
-	Parent  string `vmx:"parent,omitmepty"`
+	Parent  string `vmx:"parent,omitempty"`
 }
 
 type PowerType struct {

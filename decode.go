@@ -137,7 +137,7 @@ func (d *Decoder) decode(val reflect.Value, key string) error {
 			continue
 		}
 
-		destKey, _, err := parseTag(tag)
+		destKey, _, _, err := parseTag(tag)
 		if err != nil {
 			continue
 		}

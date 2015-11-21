@@ -10,21 +10,28 @@ func TestParsingTag(t *testing.T) {
 		tag       string
 		name      string
 		omitempty bool
+		omit      bool
 		err       string
 	}{
-		{"vmx:displayname", "", false, "Tag name has to be enclosed in double quotes: vmx:displayname"},
-		{"vmx:", "", false, "Invalid tag: vmx:"},
-		{`vmx:""`, "", false, `Tag name is missing: vmx:""`},
-		{"vm", "", false, "Invalid tag: vm"},
-		{`vmx:"displayname,omitempty`, "displayname", true, ""},
-		{`vmx:"displayname,blah"`, "displayname", false, ""},
-		{`vmx:"-"`, "-", false, ""},
+		{"vmx:displayname", "", false, false, "Tag name has to be enclosed in double quotes: vmx:displayname"},
+		{"vmx:", "", false, false, "Invalid tag: vmx:"},
+		{`vmx:""`, "", false, false, `Tag name is missing: vmx:""`},
+		{"vm", "", false, false, "Invalid tag: vm"},
+		{`vmx:"displayname1,omitempty`, "displayname1", true, false, ""},
+		{`vmx:"displayname2"`, "displayname2", false, false, ""},
+		{`vmx:"-"`, "-", false, false, ""},
+		{`vmx:"displayname3,omit`, "displayname3", false, true, ""},
+		{`vmx:"displayname4,omitempty,omit`, "displayname4", true, true, ""},
+		{`vmx:"displayname5,omit,omitempty`, "displayname5", true, true, ""},
+		{`vmx:"displayname6,omit , omitempty`, "displayname6", true, true, ""},
+		{`vmx:"displayname7 , omit , omitempty `, "displayname7", true, true, ""},
 	}
 
 	for _, tt := range tests {
-		name, omitempty, err := parseTag(tt.tag)
+		name, omitempty, omit, err := parseTag(tt.tag)
 		equals(t, tt.name, name)
 		equals(t, tt.omitempty, omitempty)
+		equals(t, tt.omit, omit)
 		if err != nil {
 			equals(t, tt.err, err.Error())
 		} else {
@@ -125,15 +132,17 @@ func TestMarshalArray(t *testing.T) {
 			VirtualDev:           "e1000",
 			WakeOnPcktRcv:        false,
 			AddressType:          "generated",
+			GeneratedAddress:     "00:0c:29:20:41:a3",
 			LinkStatePropagation: true,
 		},
 		{
-			StartConnected: true,
-			Present:        true,
-			ConnectionType: "nat",
-			VirtualDev:     "e1000",
-			WakeOnPcktRcv:  false,
-			AddressType:    "generated",
+			StartConnected:   true,
+			Present:          true,
+			ConnectionType:   "nat",
+			VirtualDev:       "e1000",
+			WakeOnPcktRcv:    false,
+			AddressType:      "generated",
+			GeneratedAddress: "00:0c:29:20:41:a3",
 		},
 	}
 
