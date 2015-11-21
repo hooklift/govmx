@@ -54,13 +54,14 @@ func (e *Encoder) encode(val reflect.Value) error {
 
 		tag := typeField.Tag
 
-		key, omitempty, err := parseTag(string(tag))
+		key, omitempty, omit, err := parseTag(string(tag))
 		if err != nil {
 			return err
 		}
 
 		if key == "-" || !valueField.IsValid() ||
 			omitempty && isEmptyValue(valueField) ||
+			omit ||
 			key == "" && !typeField.Anonymous {
 			continue
 		}

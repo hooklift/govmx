@@ -60,34 +60,49 @@ func Unmarshal(data []byte, v interface{}) error {
 }
 
 // Parses struct tag
-func parseTag(tag string) (string, bool, error) {
+func parseTag(tag string) (string, bool, bool, error) {
 	if tag == "" {
-		return "", false, nil
+		return "", false, false, nil
 	}
 
 	omitempty := false
+	omit := false
 
 	// Takes out first colon found
 	parts := strings.Split(tag, ":")
 	if len(parts) < 2 || parts[1] == "" {
-		return "", omitempty, fmt.Errorf("Invalid tag: %s", tag)
+		return "", omitempty, omit, fmt.Errorf("Invalid tag: %s", tag)
 	}
 
 	if parts[1] == `""` {
-		return "", omitempty, fmt.Errorf("Tag name is missing: %s", tag)
+		return "", omitempty, omit, fmt.Errorf("Tag name is missing: %s", tag)
 	}
 
 	// Takes out double quotes
 	parts2 := strings.Split(parts[1], `"`)
 	if len(parts2) < 2 {
-		return "", omitempty, fmt.Errorf("Tag name has to be enclosed in double quotes: %s", tag)
+		return "", omitempty, omit, fmt.Errorf("Tag name has to be enclosed in double quotes: %s", tag)
 	}
 
 	values := strings.Split(parts2[1], ",")
-	if len(values) > 1 && values[1] == "omitempty" {
-		omitempty = true
 
+	key := strings.TrimSpace(values[0])
+
+	if len(values) > 1 {
+		options := values[1:]
+		for _, option := range options {
+			option = strings.TrimSpace(option)
+
+			switch option {
+			case "omitempty":
+				omitempty = true
+			case "omit":
+				omit = true
+			default:
+				return key, omitempty, omit, fmt.Errorf("Unknown option: %s", option)
+			}
+		}
 	}
 
-	return values[0], omitempty, nil
+	return key, omitempty, omit, nil
 }
